@@ -1,6 +1,7 @@
 import express from 'express';
 import axios from 'axios';
-import pool from './db'; // データベース接続を管理するファイルからpoolをインポート
+import pool from './db';
+import { getWeather } from './controllers/weatherController';
 
 const router = express.Router();
 
@@ -35,14 +36,14 @@ router.get('/apicheck', async (req, res) => {
   // 外部APIとの疎通を確認するためのエンドポイント
   try {
     const key = process.env.API_KEY;
-    const url = 'https://api.openweathermap.org/data/2.5/forecast';
+    const url = process.env.API_URL ?? '';
     const response = await axios.get(url, {
       params: {
         lat: 35.6895,
         lon: 139.6917,
         exclude: 'minutely,hourly',
         unit: 'metric',
-        lang: 'jp',
+        lang: 'ja',
         appid: key,
       }
     });
@@ -54,4 +55,29 @@ router.get('/apicheck', async (req, res) => {
   }
 });
 
+router.get('/weather', getWeather);
+router.get('/weather-by-city', async (req, res) => {
+  try {
+    const city = req.query.city;
+    if (typeof city !== 'string') {
+      res.status(400).send('Invalid query parameters');
+      return;
+    }
+    const key = process.env.API_KEY;
+    const url = process.env.API_URL + '/weather' ?? '';
+    const response = await axios.get(url, {
+      params: {
+        q: city,
+        exclude: 'minutely,hourly',
+        unit: 'metric',
+        lang: 'ja',
+        appid: key,
+      }
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error in API call');
+  }
+});
 export default router;
