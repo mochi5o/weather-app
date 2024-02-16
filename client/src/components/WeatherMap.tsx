@@ -11,20 +11,16 @@ import {
 import { getWeatherByLatLng } from '../api';
 
 interface WeatherData {
-  data: {
-    weather: {
-      description: string;
-      icon: string;
-    }[];
-    main: {
-      temp: number;
-      temp_max: number;
-      temp_min: number;
-    }
-  };
-  local_names: {
-    [key: string]: string;
-  };
+  weather: {
+    description: string;
+    icon: string;
+  }[];
+  main: {
+    temp: number;
+    temp_max: number;
+    temp_min: number;
+  }
+  name: string;
 }
 
 const WeatherCard = styled(Card)`
@@ -61,18 +57,18 @@ function MapClickHandler() {
         <CardMedia
           component="img"
           height="140"
-          image={`https://openweathermap.org/img/wn/${weatherData.data.weather[0].icon}@2x.png`}
+          image={`https://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png`}
           alt="Weather icon"
         />
         <CardContent>
           <Typography variant="h5" component="div">
-            {weatherData.local_names.ja}
+            {weatherData.name}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            {weatherData.data.weather[0].description}
+            {weatherData.weather[0].description}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            気温 {weatherData.data.main.temp} °C
+            気温 {weatherData.main.temp} °C
           </Typography>
         </CardContent>
       </WeatherCard>

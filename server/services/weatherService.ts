@@ -1,55 +1,7 @@
+import { DbRepository } from './DbRepository';
+import { WeatherResponse } from '../interfaces/WeatherTypes';
 import axios from 'axios';
 
-interface Main {
-  temp: number;
-  feels_like: number;
-  temp_min: number;
-  temp_max: number;
-  pressure: number;
-  sea_level: number;
-  grnd_level: number;
-  humidity: number;
-  temp_kf: number;
-}
-
-interface List {
-  dt: number;
-  main: Main;
-  weather: {
-    id: number;
-    main: string;
-    description: string;
-    icon: string;
-  }[];
-  clouds: {all: number};
-  wind: {
-    speed: number;
-    deg: number;
-    gust: number;
-  };
-  visibility: number;
-  pop: number;
-  rain: {'3h': number;};
-  sys: {pod: string};
-  dt_txt: string;
-}
-
-interface WeatherResponse {
-  country: string;
-  data: {
-    city: any;
-    cod: number;
-    cnt: number;
-    list: List[];
-    message: number;
-  };
-  name: string;
-  lat: number;
-  lon: number;
-  local_names: {
-    [key: string]: string;
-  };
-}
 const key = process.env.API_KEY;
 const url = process.env.API_URL + '/weather' ?? '';
 const baseParams = {
@@ -57,6 +9,7 @@ const baseParams = {
   appid: key,
   units: 'metric',
 };
+const dbRepository = new DbRepository();
 
 const getCity = async (lat: string, lon: string) => {
   // 代表地点の緯度経度を取得
@@ -73,16 +26,49 @@ const getCity = async (lat: string, lon: string) => {
 
     if (!cityParams.data || cityParams.data.length === 0) {
       throw new Error('No city data returned from API');
+      // TODO:フロントに適切なエラーメッセージを返す
+      // return {
+      //   code: 204,
+      //   status: 'NoData',
+      //   message: 'No city data returned from API'
+      // };
     }
     return cityParams.data[0];
   } catch (error) {
     console.error('Error:', error);
     throw new Error('Error while fetching city data');
   }
-
 };
+
 export const getWeatherAndCity = async (lat: string, lon: string): Promise<WeatherResponse> => {
   const city = await getCity(lat, lon);
+
+  // DBに同一の緯度経度が存在するか確認
+  const recentData = await dbRepository.checkIfDataExists(city.lat, city.lon);
+  if (recentData) {
+    // 24時間以内に同一の緯度経度で取得したデータが存在する場合はDBからデータを返す
+    const data = {
+      main: {
+        temp: recentData.temperature,
+      },
+      coord: {
+        lat: recentData.latitude,
+        lon: recentData.longitude,
+      },
+      weather: [
+        {
+          description: recentData.description,
+          icon: recentData.icon,
+        }
+      ],
+      name: recentData.name,
+      cod: 200,
+      dt: recentData.timestamp,
+    }
+    console.log('Data exists in DB');
+    return data;
+  };
+
   // 代表地点の緯度経度で天気情報を取得
   try {
     const weatherParams = await axios.get(url, {
@@ -93,11 +79,14 @@ export const getWeatherAndCity = async (lat: string, lon: string): Promise<Weath
       }
     });
     const data = weatherParams.data;
-    const response = {
-      data,
-      ...city
-    };
-    return response;
+    data.name = city.local_names.ja;
+    data.coord.lat = city.lat;
+    data.coord.lon = city.lon;
+    console.log(data);
+
+    // DBに代表地点の緯度経度と天気情報を保存
+    await dbRepository.saveWeatherData(data);
+    return data;
   } catch (error) {
     console.error('Error:', error);
     throw new Error('Error while fetching weather data');
@@ -112,7 +101,11 @@ export const getWeatherByCityName = async (city: string): Promise<WeatherRespons
         ...baseParams,
       }
     });
-    return response.data;
+    // console.log(response.data);
+    const data = response.data;
+    // DBに代表地点の緯度経度と天気情報を保存
+    await dbRepository.saveWeatherData(data);
+    return data;
   } catch (error) {
     console.error('Error:', error);
     throw new Error('Error while fetching weather data');
