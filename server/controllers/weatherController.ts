@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { getWeatherAndCity, getWeatherByCityName } from '../services/WeatherService';
+import { getWeatherAndCity, getWeatherByCityName } from '../services/weatherService';
 
 export const getWeatherFromMap = async (req: Request, res: Response) => {
   try {
@@ -15,7 +15,7 @@ export const getWeatherFromMap = async (req: Request, res: Response) => {
     res.json(response);
   } catch (error) {
     console.error(error);
-    res.status(500).send('Error in API call');
+    // res.status(500).send('Error in API call');
   }
 };
 
