@@ -16,11 +16,11 @@ function App() {
     <Container>
       <h2>Weather App</h2>
       <Tabs value={value} onChange={handleChange}>
-        <Tab label="Weather" />
         <Tab label="Weather Map" />
+        <Tab label="Weather" />
       </Tabs>
-      {value === 0 && <Weather />}
-      {value === 1 && <WeatherMap />}
+      {value === 0 && <WeatherMap />}
+      {value === 1 && <Weather />}
     </Container>
   );
 }
