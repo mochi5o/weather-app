@@ -50,36 +50,71 @@ interface WeatherResponse {
     [key: string]: string;
   };
 }
+const key = process.env.API_KEY;
+const url = process.env.API_URL + '/weather' ?? '';
+const baseParams = {
+  lang: 'ja',
+  appid: key,
+  units: 'metric',
+};
 
-export const getWeatherAndCity = async (lat: string, lon: string): Promise<WeatherResponse> => {
-  const key = process.env.API_KEY;
+const getCity = async (lat: string, lon: string) => {
   // 代表地点の緯度経度を取得
-  const cityUrl = 'http://api.openweathermap.org/geo/1.0/reverse'
-  const cityParams = await axios.get(cityUrl, {
-    params: {
-      lat: lat,
-      lon: lon,
-      limit: 1,
-      appid: key,
+  try {
+    const cityUrl = 'http://api.openweathermap.org/geo/1.0/reverse'
+    const cityParams = await axios.get(cityUrl, {
+      params: {
+        lat: lat,
+        lon: lon,
+        limit: 1,
+        appid: key,
+      }
+    });
+
+    if (!cityParams.data || cityParams.data.length === 0) {
+      throw new Error('No city data returned from API');
     }
-  });
-  const city = cityParams.data[0];
-  // 緯度経度から天気情報を取得
-  const url = process.env.API_URL + '/weather' ?? '';
-  const weatherParams = await axios.get(url, {
-    params: {
-      lat: city.lat,
-      lon: city.lon,
-      exclude: 'minutely,hourly',
-      unit: 'metric',
-      lang: 'ja',
-      appid: key,
-    }
-  });
-  const data = weatherParams.data;
-  const response = {
-    data,
-    ...city
-  };
-  return response;
+    return cityParams.data[0];
+  } catch (error) {
+    console.error('Error:', error);
+    throw new Error('Error while fetching city data');
+  }
+
+};
+export const getWeatherAndCity = async (lat: string, lon: string): Promise<WeatherResponse> => {
+  const city = await getCity(lat, lon);
+  // 代表地点の緯度経度で天気情報を取得
+  try {
+    const weatherParams = await axios.get(url, {
+      params: {
+        lat: lat,
+        lon: lon,
+        ...baseParams,
+      }
+    });
+    const data = weatherParams.data;
+    const response = {
+      data,
+      ...city
+    };
+    return response;
+  } catch (error) {
+    console.error('Error:', error);
+    throw new Error('Error while fetching weather data');
+  }
+};
+
+export const getWeatherByCityName = async (city: string): Promise<WeatherResponse> => {
+  try {
+    const response = await axios.get(url, {
+      params: {
+        q: city,
+        ...baseParams,
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error:', error);
+    throw new Error('Error while fetching weather data');
+  }
 };
