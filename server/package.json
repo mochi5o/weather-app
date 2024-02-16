@@ -22,7 +22,7 @@
     "geolib": "^3.3.4",
     "mysql2": "^3.9.1"
   },
-  "description": "",
+  "description": "API for Weather App",
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/node": "^20.11.17",
