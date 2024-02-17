@@ -1,0 +1,29 @@
+version: '3'
+services:
+  api:
+    image: mochi5o/weather-api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    environment:
+      NODE_ENV: production
+      DB_HOST: db
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME}
+      DB_WAIT_FOR_CONNECTIONS: "true"
+      DB_CONNECTION_LIMIT: 10
+      DB_QUEUE_LIMIT: 0
+      API_KEY: ${API_KEY}
+      API_URL: https://api.openweathermap.org/data/2.5
+  db:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    volumes:
+      - db-data:/var/lib/mysql
+volumes:
+  db-data:
