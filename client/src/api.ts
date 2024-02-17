@@ -14,7 +14,7 @@ export const getWeather = async (area: string) => {
 };
 
 export const getWeatherByLatLng = async (lat: number, lon: number) => {
-  const url = 'http://localhost:3333/api/v1/weather';
+  const url = `${BASE_URL}/weather`;
   try {
     const response = await axios.get(url, {
       params: {

@@ -43,6 +43,7 @@ function MapClickHandler() {
         setIsLoading(true);
         const response = await getWeatherByLatLng(lat, lng);
         setWeatherData(response);
+        console.log(response);
         setIsLoading(false);
       };
       fetchWeatherData();

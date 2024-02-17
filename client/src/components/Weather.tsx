@@ -68,7 +68,7 @@ const Weather = () => {
           onClick={handleSubmit}
           disabled={!area}
         >
-          Submit
+          天気を見る
         </Button>
       </FormControl>
       {weatherData && (

@@ -129,7 +129,7 @@ export const getWeatherByCityName = async (city: string): Promise<WeatherRespons
       return notFoundResponse(city);
     }
     const data = response.data;
-
+    data.name = city;
     await dbRepository.saveWeatherData(data);
     return data;
   } catch (error) {

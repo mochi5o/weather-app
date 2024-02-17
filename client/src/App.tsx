@@ -16,8 +16,8 @@ function App() {
     <Container>
       <h2>Weather App</h2>
       <Tabs value={value} onChange={handleChange}>
-        <Tab label="Weather Map" />
-        <Tab label="Weather" />
+        <Tab label="Map" />
+        <Tab label="Area" />
       </Tabs>
       {value === 0 && <WeatherMap />}
       {value === 1 && <Weather />}
