@@ -1,6 +1,6 @@
 import express from 'express';
 import axios from 'axios';
-import pool from './db';
+import pool from './config/db';
 import {
   getWeatherFromMap,
   getWeatherByCity

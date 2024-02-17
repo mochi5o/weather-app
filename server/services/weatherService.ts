@@ -26,12 +26,6 @@ const getCity = async (lat: string, lon: string) => {
 
     if (!cityParams.data || cityParams.data.length === 0) {
       throw new Error('No city data returned from API');
-      // TODO:フロントに適切なエラーメッセージを返す
-      // return {
-      //   code: 204,
-      //   status: 'NoData',
-      //   message: 'No city data returned from API'
-      // };
     }
     return cityParams.data[0];
   } catch (error) {
@@ -40,33 +34,57 @@ const getCity = async (lat: string, lon: string) => {
   }
 };
 
+const createWeatherData = (data: any) => {
+  return {
+    main: {
+      temp: data.temperature,
+    },
+    coord: {
+      lat: data.latitude,
+      lon: data.longitude,
+    },
+    weather: [
+      {
+        description: data.description,
+        icon: data.icon,
+      }
+    ],
+    name: data.name,
+    cod: 200,
+    dt: data.timestamp,
+    message: 'Data exists in DB',
+  };
+};
+
+const notFoundResponse = (city: string) => {
+  return {
+    main: {
+      temp: 0,
+    },
+    coord: {
+      lat: 0,
+      lon: 0,
+    },
+    weather: [
+      {
+        description: '',
+        icon: '',
+      }
+    ],
+    name: city,
+    cod: 404,
+    dt: 0,
+    message: 'データが検索できませんでした。別の地名を検索してください。',
+  };
+};
+
 export const getWeatherAndCity = async (lat: string, lon: string): Promise<WeatherResponse> => {
   const city = await getCity(lat, lon);
-
   // DBに同一の緯度経度が存在するか確認
-  const recentData = await dbRepository.checkIfDataExists(city.lat, city.lon);
+  const recentData = await dbRepository.checkIfDataExistsLatLog(city.lat, city.lon);
   if (recentData) {
     // 24時間以内に同一の緯度経度で取得したデータが存在する場合はDBからデータを返す
-    const data = {
-      main: {
-        temp: recentData.temperature,
-      },
-      coord: {
-        lat: recentData.latitude,
-        lon: recentData.longitude,
-      },
-      weather: [
-        {
-          description: recentData.description,
-          icon: recentData.icon,
-        }
-      ],
-      name: recentData.name,
-      cod: 200,
-      dt: recentData.timestamp,
-    }
-    console.log('Data exists in DB');
-    return data;
+    return createWeatherData(recentData);
   };
 
   // 代表地点の緯度経度で天気情報を取得
@@ -84,7 +102,6 @@ export const getWeatherAndCity = async (lat: string, lon: string): Promise<Weath
     data.coord.lon = city.lon;
     console.log(data);
 
-    // DBに代表地点の緯度経度と天気情報を保存
     await dbRepository.saveWeatherData(data);
     return data;
   } catch (error) {
@@ -94,6 +111,12 @@ export const getWeatherAndCity = async (lat: string, lon: string): Promise<Weath
 };
 
 export const getWeatherByCityName = async (city: string): Promise<WeatherResponse> => {
+  // DBに同一の緯度経度が存在するか確認
+  const recentData = await dbRepository.checkIfDataExistsCityName(city);
+  if (recentData) {
+    // 24時間以内に同一の緯度経度で取得したデータが存在する場合はDBからデータを返す
+    return createWeatherData(recentData);
+  }
   try {
     const response = await axios.get(url, {
       params: {
@@ -101,9 +124,12 @@ export const getWeatherByCityName = async (city: string): Promise<WeatherRespons
         ...baseParams,
       }
     });
-    // console.log(response.data);
+    if (!response || response.status !== 200) {
+      // 地名の検索に失敗する時がある
+      return notFoundResponse(city);
+    }
     const data = response.data;
-    // DBに代表地点の緯度経度と天気情報を保存
+
     await dbRepository.saveWeatherData(data);
     return data;
   } catch (error) {

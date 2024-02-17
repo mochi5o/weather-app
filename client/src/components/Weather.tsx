@@ -18,10 +18,10 @@ interface WeatherData {
   }[];
   main: {
     temp: number;
-    temp_max: number;
-    temp_min: number;
   }
   name: string;
+  cod: number;
+  message?: string;
 }
 
 const Weather = () => {
@@ -31,6 +31,10 @@ const Weather = () => {
   const handleSubmit = async () => {
     try {
       const data = await getWeather(area);
+      if (!data) {
+        alert(`「${area}」のデータが見つかりませんでした。別の地名を検索してください。`);
+        return;
+      }
       setWeatherData(data);
       console.log(data);
     } catch (error) {

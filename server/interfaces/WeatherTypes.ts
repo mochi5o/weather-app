@@ -7,10 +7,11 @@ export interface WeatherResponse {
     lon: number;
   };
   weather: {
-    description: string;
-    icon: string;
+    description: string | '';
+    icon: string | '';
   }[];
-  name: string;
+  name: string | '';
   cod: number;
   dt: number;
+  message?: string;
 }

@@ -15,7 +15,7 @@ export const getWeatherFromMap = async (req: Request, res: Response) => {
     res.json(response);
   } catch (error) {
     console.error(error);
-    // res.status(500).send('Error in API call');
+    res.status(500).send('Error in API call');
   }
 };
 

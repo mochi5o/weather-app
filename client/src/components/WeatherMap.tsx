@@ -17,10 +17,10 @@ interface WeatherData {
   }[];
   main: {
     temp: number;
-    temp_max: number;
-    temp_min: number;
   }
   name: string;
+  cod: number;
+  message?: string;
 }
 
 const WeatherCard = styled(Card)`
@@ -96,7 +96,7 @@ const WeatherMap: React.FC = () => {
         style={{ height: '50vh', width: '90%' }}
       >
         <TileLayer
-          url='https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png'
+          url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
         />
         <MapClickHandler />
       </MapContainer>

@@ -7,9 +7,6 @@ export const getWeather = async (area: string) => {
 
   try {
     const response = await axios.get(url);
-    if (response.status < 200 || response.status >= 300) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
     return response.data;
   } catch (error) {
     console.error('Error:', error);
